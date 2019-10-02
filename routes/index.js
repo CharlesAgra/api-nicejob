@@ -55,7 +55,7 @@ router.post('/authenticate', async (req, res) =>{
 });
 
 router.get('/', (req, res) =>{
-
+    res.send("Hello World!!");
 });
 
 module.exports = router;
