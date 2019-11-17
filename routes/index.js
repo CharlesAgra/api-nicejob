@@ -21,15 +21,19 @@ router.post('/registration', async (req, res) => {
     const saveNewUser = User({
         nome: req.body.nome,
         email: req.body.email,
+        telefone: req.body.telefone,
+        endereco: req.body.endereco,
         senha: hashSenha
     })
 
+    console.log("Salvando!");
+
     saveNewUser.save()
         .then(data => {
-            res.status(200).send(data);
+            return res.status(200).send(data);
         })
         .catch(error => {
-            res.status(201).send({error: error})
+            return res.status(201).redirect(error);
         })
 });
 
@@ -37,19 +41,16 @@ router.post('/authenticate', async (req, res) =>{
     const email = req.body.email;
     const senha = req.body.senha;
 
-    //Checando se usuário existe
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: email });
 
     if(!user)
         return res.status(400).send({ error: 'Usuário não encontrado'});
 
-    // Chegando se a senha é igual
     const senhaValida = await bcrypt.compare(senha, user.senha);
 
     if(!senhaValida)
         res.status(201).send({error: "Senha inválida"});
 
-    //Usando jsonwebtoken -> criando e assinando um token
     const token = jwt.sign({_id: user.id}, process.env.TOKEN_SECRET);
     res.header('Authorization', token).status(200).send({id: user._id, message: "Logged in"});
 });
