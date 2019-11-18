@@ -16,7 +16,7 @@ router.post('/registration', async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
 
     if(user)
-        return res.status(400).send({ error: 'Usuário já existe'});
+        return res.status(201).send(user);
 
     const saveNewUser = User({
         nome: req.body.nome,
@@ -25,8 +25,6 @@ router.post('/registration', async (req, res) => {
         endereco: req.body.endereco,
         senha: hashSenha
     })
-
-    console.log("Salvando!");
 
     saveNewUser.save()
         .then(data => {
@@ -44,15 +42,16 @@ router.post('/authenticate', async (req, res) =>{
     const user = await User.findOne({ email: email });
 
     if(!user)
-        return res.status(400).send({ error: 'Usuário não encontrado'});
+        return res.status(201).send('Usuário não encontrado');
 
     const senhaValida = await bcrypt.compare(senha, user.senha);
 
     if(!senhaValida)
-        res.status(201).send({error: "Senha inválida"});
+        return res.status(201).send('Senha inválida');
 
     const token = jwt.sign({_id: user.id}, process.env.TOKEN_SECRET);
-    res.header('Authorization', token).status(200).send({id: user._id, message: "Logged in"});
+    
+    return res.header('Authorization', token).status(200).send({id: user._id, message: "Logged in"});
 });
 
 router.get('/', (req, res) =>{

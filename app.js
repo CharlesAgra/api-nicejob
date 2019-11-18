@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const cors = require('cors');
 
 //Rotas
 const database = require('./database/connection');
@@ -10,11 +11,12 @@ const indexRouter = require('./routes/index');
 const catalogoRouter = require('./routes/catalogo');
 
 const app = express();
-const PORT = 9000;
+const PORT = 3000;
 
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cors())
 
 app.use('/', indexRouter);
 app.use('/registration', indexRouter);
