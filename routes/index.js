@@ -5,20 +5,24 @@ const router = express.Router();
 require('dotenv').config();
 
 //Model
-const User = require('../models/RegisterUser');
+const Hired = require('../models/RegisterHired');
+const Contractor = require('../models/RegisterContractor');
+const Order = require('../models/RegisterOrder');
 
-router.post('/registration', async (req, res) => {
+//Registro do contratado
+
+router.post('/registerHired', async (req, res) => {
     //Mudando a senha para hash
     const salt = await bcrypt.genSalt(10);
     const hashSenha = await bcrypt.hash(req.body.senha, salt);
 
     //Verificar se o email ja existe
-    const user = await User.findOne({ email: req.body.email });
+    const hired = await Hired.findOne({ email: req.body.email });
 
-    if(user)
-        return res.status(201).send(user);
+    if(hired)
+        return res.status(201).send(hired);
 
-    const saveNewUser = User({
+    const saveNewHired = Hired({
         nome: req.body.nome,
         email: req.body.email,
         telefone: req.body.telefone,
@@ -26,7 +30,7 @@ router.post('/registration', async (req, res) => {
         senha: hashSenha
     })
 
-    saveNewUser.save()
+    saveNewHired.save()
         .then(data => {
             return res.status(200).send(data);
         })
@@ -39,19 +43,78 @@ router.post('/authenticate', async (req, res) =>{
     const email = req.body.email;
     const senha = req.body.senha;
 
-    const user = await User.findOne({ email: email });
+    const hired = await Hired.findOne({ email: email });
+    const contractor = await Contractor.findOne({ email: email });
 
-    if(!user)
+    if(!hired && !contractor)
         return res.status(201).send('Usuário não encontrado');
 
-    const senhaValida = await bcrypt.compare(senha, user.senha);
+    let hiredOrContractor = hired == null ? "contractor" : "hired";
+
+    let senhaValida = '';
+
+    if(hiredOrContractor === 'hired')
+        senhaValida = await bcrypt.compare(senha, hired.senha);
+    else
+        senhaValida = await bcrypt.compare(senha, contractor.senha);
 
     if(!senhaValida)
         return res.status(201).send('Senha inválida');
 
-    const token = jwt.sign({_id: user.id}, process.env.TOKEN_SECRET);
-    
-    return res.header('Authorization', token).status(200).send({id: user._id, message: "Logged in"});
+    let token = '';
+
+    let dados = '';
+
+    if(hiredOrContractor === 'hired'){
+        token = jwt.sign({_id: hired.id}, process.env.TOKEN_SECRET);
+        dados = hired.id;
+    }else{
+        token = jwt.sign({_id: contractor.id}, process.env.TOKEN_SECRET);
+        dados = contractor.id;
+    }
+    return res.header('Authorization', token).status(200).send({ message: "Logged in", id: dados});
+});
+
+// Registro do contratante
+
+router.post('/registerContractor', async (req, res) =>{
+    //Mudando a senha para hash
+    const salt = await bcrypt.genSalt(10);
+    const hashSenha = await bcrypt.hash(req.body.senha, salt);
+
+    //Verificar se o email ja existe
+    const contractor = await Contractor.findOne({ email: req.body.email });
+
+    if(contractor)
+        return res.status(201).send(contractor);
+
+    console.log(req.body);
+
+    const saveNewContractor = Contractor({
+        nome: req.body.nome,
+        email: req.body.email,
+        cpf: req.body.cpf,
+        telefone: req.body.telefone,
+        endereco: req.body.endereco,
+        cidade: req.body.cidade,
+        especialidades: req.body.especialidades,
+        cep: req.body.cep,
+        senha: hashSenha
+    })
+
+    saveNewContractor.save()
+        .then(data => {
+            return res.status(200).send(data);
+        })
+        .catch(error => {
+            return res.status(201).redirect(error);
+        })
+});
+
+//Registro do serviço
+
+router.post('/registerOrder', async (req, res) =>{
+
 });
 
 router.get('/', (req, res) =>{
