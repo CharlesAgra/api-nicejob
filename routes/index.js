@@ -143,6 +143,37 @@ router.get('/getHired', async (req, res) =>{
     return res.status(200).send(contratados);
 });
 
+router.get('/getUser/:id', async (req, res) =>{
+    Hired.findById(req.params.id)
+    .then(dados =>{
+        return res.status(200).send(dados);
+    })
+    .catch(error =>{
+        return res.status(201).send(error);
+    })
+});
+
+router.put('/updateUser', async (req, res) => {
+    const salt = await bcrypt.genSalt(10);
+    const hashSenha = await bcrypt.hash(req.body.senha, salt);
+
+    const updateUser = {
+        nome: req.body.nome,
+        email: req.body.email,
+        telefone: req.body.telefone,
+        endereco: req.body.endereco,
+        senha: hashSenha
+    };
+
+    Hired.findByIdAndUpdate({_id: req.body.id}, updateUser)
+    .then(success =>{
+        return res.status(200).send(success);
+    })
+    .catch(error =>{
+        return res.status(200).send(error);
+    })    
+})
+
 router.get('/', (req, res) =>{
     res.send("Hello World!!");
 });
