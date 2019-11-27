@@ -62,17 +62,16 @@ router.post('/authenticate', async (req, res) =>{
         return res.status(201).send('Senha inválida');
 
     let token = '';
-
     let dados = '';
 
     if(hiredOrContractor === 'hired'){
         token = jwt.sign({_id: hired.id}, process.env.TOKEN_SECRET);
-        dados = hired.id;
+        dados = hired;
     }else{
         token = jwt.sign({_id: contractor.id}, process.env.TOKEN_SECRET);
-        dados = contractor.id;
+        dados = contractor;
     }
-    return res.header('Authorization', token).status(200).send({ message: "Logged in", id: dados});
+    return res.header('Authorization', token).status(200).send({ message: "Logged in", dados: dados});
 });
 
 // Registro do contratante
@@ -114,7 +113,34 @@ router.post('/registerContractor', async (req, res) =>{
 //Registro do serviço
 
 router.post('/registerOrder', async (req, res) =>{
+    const saveNewOrder = Order({
+        servico: req.body.servico,
+        local: req.body.local,
+        quantidadeAreas: req.body.quantidadeAreas,
+        descricao: req.body.descricao,
+        cep: req.body.cep,
+        endereco: req.body.endereco,
+        data: req.body.data,
+        idContractor: req.body.idContractor
+    });
 
+    saveNewOrder.save()
+    .then(data =>{
+        return res.status(200).send(data);
+    })
+    .catch(error => {
+        return res.status(201).redirect(error);
+    })
+});
+
+router.get('/getOrder', async (req, res) =>{
+    const pedidos = await Order.find({});
+    return res.status(200).send(pedidos);
+});
+
+router.get('/getHired', async (req, res) =>{
+    const contratados = await Hired.find({});
+    return res.status(200).send(contratados);
 });
 
 router.get('/', (req, res) =>{

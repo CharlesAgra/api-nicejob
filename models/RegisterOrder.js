@@ -15,17 +15,21 @@ const UserSchema = mongoose.Schema({
     },
     descricao:{
         type: String,
-        require: true,
+        required: true,
     },
     cep:{
         type: String,
-        require: true,
+        required: true,
     },
     endereco: {
         type: String,
         required: true,
     },
     data: {
+        type: String,
+        required: true,
+    },
+    idContractor: {
         type: String,
         required: true,
     },
